@@ -9,7 +9,7 @@
 import csv
 import xml.etree.cElementTree as ET
 import xml.dom.minidom
-
+import sys
 
 config = {
     "account": {
@@ -90,6 +90,11 @@ def account_set_owner(account, name, reg_no):
 def set_enties(parent, entries_count, total_amount):
     add_property(parent, "NbOfNtries", entries_count)
     add_property(parent, "Sum", total_amount)
+
+
+if len(sys.argv) < 3:
+    print("Usage: {cmd_name} <csv-input> <xml-output>".format(cmd_name=sys.argv[0]))
+    exit(1)
 
 
 document = ET.Element("Document")
@@ -184,7 +189,7 @@ ET.SubElement(tx_details, "RmtInf")
 
 # Dump the output to a file
 xmlstr = xml.dom.minidom.parseString(ET.tostring(document)).toprettyxml(indent="   ")
-with open("sepa.xml", "w") as f:
+with open(sys.argv[2], "w") as f:
     f.write(xmlstr)
 
 
@@ -192,13 +197,14 @@ with open("sepa.xml", "w") as f:
 
 is_header = True
 csv_header    = None
-with open('transfers.csv', 'r') as csvfile:
+with open(sys.argv[1], 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in reader:
         if is_header:
             csv_header = map(sanitize_field_name, row)
             is_header = False
         else:
+            print(row)
             tr = parse_row(row)
             print(tr.__dict__)
             print('')
